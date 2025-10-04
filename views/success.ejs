@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0/fonts/remixicon.css" rel="stylesheet" />
+    <title>Upload Success - Drive Clone</title>
+  </head>
+  <body class="bg-gray-100 dark:bg-gray-800 min-h-screen w-screen flex items-center justify-center">
+
+    <div class="w-full max-w-md px-6">
+        <div class="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-8 text-center">
+            <!-- Success Icon Animation -->
+            <div class="mb-6">
+                <div class="mx-auto w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center animate-bounce">
+                    <i class="ri-check-line text-5xl text-green-600 dark:text-green-400"></i>
+                </div>
+            </div>
+            
+            <!-- Success Message -->
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+                Upload Successful!
+            </h1>
+            
+            <p class="text-lg text-gray-600 dark:text-gray-300 mb-2">
+                Your file has been uploaded successfully
+            </p>
+            
+            <% if (fileName) { %>
+                <div class="bg-blue-50 dark:bg-blue-900 rounded-lg p-3 mb-6">
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Uploaded File:</p>
+                    <p class="text-md font-semibold text-blue-700 dark:text-blue-300 break-all">
+                        <i class="ri-file-line mr-1"></i> <%= fileName %>
+                    </p>
+                </div>
+            <% } %>
+            
+            <!-- Action Buttons -->
+            <div class="space-y-3">
+                <a href="/home" class="block w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-3 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <i class="ri-home-line mr-2"></i> Go to Home
+                </a>
+                
+                <button onclick="window.location.href='/home'" class="block w-full text-gray-700 bg-gray-200 hover:bg-gray-300 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-3 text-center dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 dark:focus:ring-gray-700">
+                    <i class="ri-upload-cloud-line mr-2"></i> Upload Another File
+                </button>
+            </div>
+            
+            <!-- Auto-redirect message -->
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-6">
+                You will be redirected to home in <span id="countdown">5</span> seconds...
+            </p>
+        </div>
+    </div>
+
+    <!-- Cookie Consent Banner -->
+    <div id="cookie-consent" class="hidden fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 shadow-lg z-50">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-sm">
+                We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.
+            </p>
+            <button id="accept-cookies" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium whitespace-nowrap">
+                Accept All Cookies
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+    
+    <script>
+        // Cookie Consent
+        window.addEventListener('DOMContentLoaded', () => {
+            const cookieConsent = document.getElementById('cookie-consent');
+            const acceptButton = document.getElementById('accept-cookies');
+            
+            // Check if user has already accepted cookies
+            if (!localStorage.getItem('cookiesAccepted')) {
+                cookieConsent.classList.remove('hidden');
+            }
+            
+            acceptButton.addEventListener('click', () => {
+                localStorage.setItem('cookiesAccepted', 'true');
+                cookieConsent.classList.add('hidden');
+            });
+        });
+
+        // Auto-redirect countdown
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdown');
+        
+        const interval = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(interval);
+                window.location.href = '/home';
+            }
+        }, 1000);
+    </script>
+  </body>
+</html>

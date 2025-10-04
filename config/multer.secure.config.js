@@ -1,0 +1,80 @@
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
+const firebase = require('./firebase.config');
+
+// Custom storage engine for Firebase
+class FirebaseStorage {
+    constructor(opts) {
+        this.bucket = firebase.storage().bucket(opts.bucketName);
+        this.unique = opts.unique || false;
+    }
+
+    _handleFile(req, file, cb) {
+        const fileName = this.unique ? 
+            `${Date.now()}_${uuidv4()}_${file.originalname}` : 
+            file.originalname;
+
+        const fileRef = this.bucket.file(fileName);
+        const stream = fileRef.createWriteStream({
+            metadata: {
+                contentType: file.mimetype,
+            },
+        });
+
+        stream.on('error', (error) => {
+            cb(error);
+        });
+
+        stream.on('finish', () => {
+            cb(null, {
+                path: fileName,
+                filename: fileName,
+                originalname: file.originalname,
+                mimetype: file.mimetype,
+                size: stream.bytesWritten,
+                bucket: this.bucket.name,
+            });
+        });
+
+        file.stream.pipe(stream);
+    }
+
+    _removeFile(req, file, cb) {
+        const fileRef = this.bucket.file(file.path);
+        fileRef.delete().then(() => {
+            cb(null);
+        }).catch((error) => {
+            cb(error);
+        });
+    }
+}
+
+const storage = new FirebaseStorage({
+    bucketName: process.env.FIREBASE_STORAGE_BUCKET || 'drive-9de7d.firebasestorage.app',
+    unique: true
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        // Basic security check - you can expand this
+        const allowedMimes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf', 'text/plain', 'text/csv',
+            'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/zip', 'application/x-zip-compressed'
+        ];
+        
+        if (allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error(`File type ${file.mimetype} not allowed`), false);
+        }
+    }
+});
+
+module.exports = upload;
