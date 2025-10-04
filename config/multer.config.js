@@ -52,15 +52,22 @@ class FirebaseStorage {
 
 let storage;
 
-try {
-    storage = new FirebaseStorage({
-        bucketName: process.env.FIREBASE_STORAGE_BUCKET || 'drive-9de7d.firebasestorage.app',
-        unique: true
-    });
-} catch (error) {
-    console.error('Firebase Storage configuration error:', error);
-    // Fallback to memory storage if Firebase configuration fails
-    console.log('Using memory storage as fallback');
+// Check if Firebase is available
+const firebaseAdmin = require('./firebase.config');
+if (firebaseAdmin && firebaseAdmin.apps && firebaseAdmin.apps.length > 0) {
+    try {
+        storage = new FirebaseStorage({
+            bucketName: process.env.FIREBASE_STORAGE_BUCKET || 'drive-9de7d.firebasestorage.app',
+            unique: true
+        });
+        console.log('Using Firebase Storage');
+    } catch (error) {
+        console.error('Firebase Storage configuration error:', error);
+        console.log('Using memory storage as fallback');
+        storage = multer.memoryStorage();
+    }
+} else {
+    console.log('Firebase not available, using memory storage');
     storage = multer.memoryStorage();
 }
 

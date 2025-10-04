@@ -37,11 +37,17 @@ if (!admin.apps.length) {
                 console.error('Firebase service account file not found:', fileError.message);
                 console.log('Continuing without Firebase - file uploads will not work');
                 console.log('For production deployment, set Firebase environment variables in Vercel');
+                // Don't initialize Firebase if file is missing
+                module.exports = null;
+                return;
             }
         }
     } catch (error) {
         console.error('Firebase initialization error:', error.message);
         console.log('Continuing without Firebase - file uploads will not work');
+        // Don't initialize Firebase if there's an error
+        module.exports = null;
+        return;
     }
 }
 

@@ -5,6 +5,9 @@ const fileModel = require('../models/files.models');
 const authMiddleware = require('../middlewares/authe');
 const firebase = require('../config/firebase.config');
 
+// Check if Firebase is available
+const isFirebaseAvailable = firebase && firebase.apps && firebase.apps.length > 0;
+
 router.get('/home', authMiddleware, async(req, res) => {
     try {
         const userFiles = await fileModel.find({ user: req.user.id });
@@ -50,6 +53,10 @@ router.get('/view/:fileId', authMiddleware, async (req, res) => {
             return res.status(404).json({ error: 'File not found or unauthorized' });
         }
 
+        if (!isFirebaseAvailable) {
+            return res.status(503).json({ error: 'File storage not available' });
+        }
+
         const bucket = firebase.storage().bucket();
         const fileRef = bucket.file(file.path);
         
@@ -73,6 +80,10 @@ router.get('/download/:fileId', authMiddleware, async (req, res) => {
         const file = await fileModel.findOne({ _id: fileId, user: loggedInUserId });
         if (!file) {
             return res.status(404).json({ error: 'File not found or unauthorized' });
+        }
+
+        if (!isFirebaseAvailable) {
+            return res.status(503).json({ error: 'File storage not available' });
         }
 
         const bucket = firebase.storage().bucket();
@@ -101,15 +112,17 @@ router.delete('/delete/:fileId', authMiddleware, async (req, res) => {
         }
 
         // Delete from Firebase Storage
-        const bucket = firebase.storage().bucket();
-        const fileRef = bucket.file(file.path);
-        
-        try {
-            await fileRef.delete();
-            console.log('File deleted from Firebase Storage:', file.path);
-        } catch (firebaseError) {
-            console.error('Firebase deletion error:', firebaseError);
-            // Continue with database deletion even if Firebase deletion fails
+        if (isFirebaseAvailable) {
+            const bucket = firebase.storage().bucket();
+            const fileRef = bucket.file(file.path);
+            
+            try {
+                await fileRef.delete();
+                console.log('File deleted from Firebase Storage:', file.path);
+            } catch (firebaseError) {
+                console.error('Firebase deletion error:', firebaseError);
+                // Continue with database deletion even if Firebase deletion fails
+            }
         }
 
         // Delete from database
